@@ -17,13 +17,11 @@ Once the plugin has been installed, it may be enabled inside your Gruntfile with
 grunt.loadNpmTasks('grunt-jafar-task');
 ```
 
-## Getting Started
-
-Create package.json and Gruntfile.js
+Make sure you already have package.json and Gruntfile.js file.
 
 ```js
 /**
- * Gruntfile.js
+ * Gruntfile.js example
  */
 
 module.exports = function(grunt) {
