@@ -17,6 +17,41 @@ Once the plugin has been installed, it may be enabled inside your Gruntfile with
 grunt.loadNpmTasks('grunt-jafar-task');
 ```
 
+## Getting Started
+
+Create package.json and Gruntfile.js
+
+```js
+/**
+ * Gruntfile.js
+ */
+
+module.exports = function(grunt) {
+
+    grunt.loadNpmTasks('grunt-jafar-task');
+    grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-contrib-uglify');
+
+    grunt.initConfig({
+        clean: {
+            remove: ['dist', 'bower_components']
+        },
+        fetchDeps: {
+            bower: {}
+        },
+        useHtml: {
+            scan: ['index-unminified.html'],
+            map: {
+                'index-unminified.html': 'index.html'
+            }
+        }
+    });
+
+    grunt.registerTask('build', ['fetchDeps', 'useHtml:scan', 'concat', 'uglify', 'useHtml:map']);
+
+};
+```
+
 ## The "clean" task
 
 ### Overview
