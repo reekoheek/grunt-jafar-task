@@ -1,12 +1,18 @@
 var jsdom = require("jsdom"),
     path = require('path'),
+    fs = require('fs'),
     _ = require('lodash'),
     d = require('simply-deferred'),
     Deferred = d.Deferred,
     when = d.when,
     libJquerySrc = path.resolve(__dirname + '/../libs/jquery-2.0.3.min.js'),
-    detect = function(content) {
-        var deferred = new Deferred();
+    scan = function(file) {
+        var content = file.body,
+            deferred = new Deferred(),
+            dirname = path.dirname(file.path),
+            prepareURL = function(p) {
+                return path.join(dirname, p);
+            };
 
         jsdom.env(content, [libJquerySrc], function(err, window) {
             var $ = window.$,
@@ -18,9 +24,9 @@ var jsdom = require("jsdom"),
 
                             if (combiningObject) {
                                 if (combiningObject.type == 'js' && this.tagName == 'SCRIPT' && this.src) {
-                                    combiningObject.urls.push(this.src);
+                                    combiningObject.urls.push(prepareURL(this.src));
                                 } else if (combiningObject.type == 'css' && this.tagName == 'LINK' && this.href) {
-                                    combiningObject.urls.push(this.href);
+                                    combiningObject.urls.push(prepareURL(this.href));
                                 }
                             }
 
@@ -37,7 +43,7 @@ var jsdom = require("jsdom"),
                                 if (found) {
                                     combiningObject = {
                                         type: found[1],
-                                        file: found[2],
+                                        file: prepareURL(found[2]),
                                         urls: []
                                     };
                                 }
@@ -63,8 +69,10 @@ var jsdom = require("jsdom"),
 
         return deferred.promise();
     },
-    map = function(content) {
-        var deferred = new Deferred(),
+    map = function(fo) {
+        var content = fo.body,
+            htmlDirName = path.dirname(fo.path),
+            deferred = new Deferred(),
             opened,
             results = [];
         content = content.split('\n');
@@ -79,12 +87,20 @@ var jsdom = require("jsdom"),
             } else {
                 found = line.match(/<!--\s*combine\:(\w+)\s+((?!\s).*)\s*-->/);
                 if (found) {
+                    var f = found[2].trim(),
+                        ext = path.extname(f),
+                        minname = f.substr(0, f.length - ext.length) + '.min' + ext;
+
+                    if (fs.existsSync(path.join(htmlDirName, minname))) {
+                        f = minname;
+                    }
+
                     if (found[1] == 'css') {
-                        rep = '<link rel="stylesheet" type="text/css" href="' + found[2].trim() + '" />';
+                        rep = '<link rel="stylesheet" type="text/css" href="' + f + '" />';
                         rep = line.replace(/<!--\s*combine\:(\w+)\s+((?!\s).*)\s*-->/, rep);
                         results.push(rep);
                     } else if (found[1] == 'js') {
-                        rep = '<script type="text/javascript" src="' + found[2].trim() + '"></script>';
+                        rep = '<script type="text/javascript" src="' + f + '"></script>';
                         rep = line.replace(/<!--\s*combine\:(\w+)\s+((?!\s).*)\s*-->/, rep);
                         results.push(rep);
                     }
@@ -117,7 +133,7 @@ module.exports = function(grunt) {
                 };
             });
             files.forEach(function (file) {
-                promises.push(detect(file.body));
+                promises.push(scan(file));
             });
 
             when(promises).then(function(results) {
@@ -152,8 +168,10 @@ module.exports = function(grunt) {
             _.forEach(this.data, function(to, from) {
                 var froms = grunt.file.expand({filter: 'isFile'}, [from]);
                 if(froms.length) {
-                    var content = grunt.file.read(from);
-                    map(content).then(function(content) {
+                    map({
+                        path: from,
+                        body: grunt.file.read(from)
+                    }).then(function(content) {
                         grunt.file.write(to, content);
                     });
                 }

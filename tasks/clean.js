@@ -6,12 +6,12 @@
  * Licensed under the MIT license.
  */
 
-'use strict';
 
 var shell = require('shelljs'),
     _ = require('lodash');
 
 module.exports = function(grunt) {
+    'use strict';
 
     grunt.registerMultiTask('clean', 'Jafar\'s clean task', function() {
         _.each(this.data, function(file) {
