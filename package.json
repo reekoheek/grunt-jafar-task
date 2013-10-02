@@ -1,7 +1,7 @@
 {
   "name": "grunt-jafar-task",
   "description": "Jafar's grunt tasks",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "homepage": "https://github.com/reekoheek/grunt-jafar-task",
   "author": {
     "name": "Jafar Shadiq",
