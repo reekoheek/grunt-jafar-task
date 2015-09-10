@@ -1,6 +1,6 @@
 # grunt-jafar-task
 
-> Jafar's grunt tasks
+> Jafar's grunt tasks DISCONTINUED. If you like, you can use [pas](https://github.com/xinix-technology/pas)
 
 ## Getting Started
 This plugin requires Grunt `~0.4.1`
